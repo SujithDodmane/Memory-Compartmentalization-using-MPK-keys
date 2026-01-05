@@ -1,0 +1,22 @@
+# C
+*.o
+*.out
+*.exe
+*.so
+*.dylib
+*.dll
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.manifest
+venv/
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+vulnerable_app
