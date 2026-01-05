@@ -115,12 +115,7 @@ function runScenario(scenario) {
             const secretContent = document.getElementById('secret-content');
             secretContent.textContent = "CORRUPTED_SECRET_DATA";
             secretContent.classList.add('leaked');
-
-            // FIX: Remove inline transparency so class color takes over
-            secretContent.style.color = '';
-            secretContent.style.textShadow = '';
-            // Ensure it is visible by default (remove hidden class)
-            secretContent.classList.remove('secret-hidden');
+            secretContent.classList.add('visible'); // MAKE VISIBLE ON COMPROMISE
 
             document.getElementById('secret-lock').style.display = 'none';
             document.getElementById('vis-secret').style.borderColor = 'var(--accent-red)';
@@ -143,10 +138,12 @@ function runScenario(scenario) {
         }
 
         if (scenario === 'build' && msg.includes("Build Complete")) {
-            document.getElementById('btn-show-secret').disabled = false;
-            document.getElementById('btn-show-secret').style.opacity = '1';
-            // Since default is now visible, button should say Hide
-            document.getElementById('btn-show-secret').innerHTML = '<span class="icon">🚫</span> Hide Secure Data';
+            const btn = document.getElementById('btn-show-secret');
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            // Default is HIDDEN, so button should allow showing
+            btn.innerHTML = '<span class="icon">👁️</span> Show Secure Data';
+            btn.classList.remove('active');
         }
     };
 
@@ -164,19 +161,13 @@ function toggleSecret() {
     const secretContent = document.getElementById('secret-content');
     const btn = document.getElementById('btn-show-secret');
 
-    // Check if currently hidden (color is transparent OR computed style is transparent)
-    const isHidden = secretContent.style.color === 'transparent';
+    secretContent.classList.toggle('visible');
+    const isVisible = secretContent.classList.contains('visible');
 
-    if (isHidden) {
-        // SHOW IT
-        secretContent.style.color = 'var(--text-secondary)';
-        secretContent.style.textShadow = 'none';
+    if (isVisible) {
         btn.innerHTML = '<span class="icon">🚫</span> Hide Secure Data';
         btn.classList.add('active');
     } else {
-        // HIDE IT
-        secretContent.style.color = 'transparent';
-        secretContent.style.textShadow = '0 0 10px var(--accent-green)';
         btn.innerHTML = '<span class="icon">👁️</span> Show Secure Data';
         btn.classList.remove('active');
     }
@@ -237,12 +228,9 @@ function resetVisualizer() {
     // Reset Secret
     const sec = document.getElementById('secret-content');
     sec.textContent = "SUPER_SECRET_PASSWORD_12345";
-    sec.classList.remove('leaked');
-    // Clear inline styles so CSS classes take over
+    sec.className = 'secret-content'; // Removes 'visible' or 'leaked'
     sec.style.color = '';
     sec.style.textShadow = '';
-    // Ensure it is visible by default (remove hidden class)
-    sec.classList.remove('secret-hidden');
 
     document.getElementById('secret-lock').style.display = 'block';
     document.getElementById('secret-lock').style.transform = 'scale(1)';
@@ -260,6 +248,15 @@ function resetVisualizer() {
     // Reset Animations
     document.getElementById('vis-buffer').classList.remove('flash-blue');
     document.getElementById('vis-secret').classList.remove('flash-green');
+
+    // Reset Button (Hidden by default)
+    const btn = document.getElementById('btn-show-secret');
+    if (btn) {
+        btn.innerHTML = '<span class="icon">👁️</span> Show Secure Data';
+        btn.classList.remove('active');
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+    }
 }
 
 function visualizeOverflow() {
