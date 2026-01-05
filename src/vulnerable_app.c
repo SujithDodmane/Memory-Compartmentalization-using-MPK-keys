@@ -44,6 +44,9 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    // 0. Disable buffering for real-time streaming
+    setbuf(stdout, NULL);
+
     // 1. Initialize System
     init_timeline();
     LOG_INFO("Starting in-process isolation demo (Phase 2: BASELINE / NO PROTECTION)");

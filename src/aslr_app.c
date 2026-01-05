@@ -72,6 +72,9 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    // 0. Disable buffering
+    setbuf(stdout, NULL);
+
     init_timeline();
     LOG_INFO("Starting (Phase 3: ASLR ENABLED / NO MPK)");
     

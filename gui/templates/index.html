@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Memory Defense Dashboard</title>
     <link rel="stylesheet" href="/static/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
     <div class="container">
         <header>
             <div class="logo">
                 <span class="shield-icon">🛡️</span>
-                <h1>Memory Defense <span class="highlight">OS</span></h1>
+                <h1>Memory Compartmentalization <span class="highlight">ASLR + MPK</span></h1>
             </div>
             <div class="status-bar">
                 <div class="status-item" id="status-protection">
@@ -33,6 +37,10 @@
                     <button id="btn-build" class="action-btn" onclick="runScenario('build')">
                         <span class="icon">🛠️</span> Build Project
                     </button>
+                    <button id="btn-show-secret" class="action-btn" onclick="toggleSecret()" disabled
+                        style="opacity: 0.5;">
+                        <span class="icon">🚫</span> Hide Secure Data
+                    </button>
                     <button id="btn-baseline" class="action-btn danger" onclick="runScenario('baseline')">
                         <span class="icon">💀</span> Run Baseline Attack
                     </button>
@@ -43,28 +51,64 @@
                         <span class="icon">🔒</span> Run Protected App
                     </button>
                 </div>
-                
+
                 <div class="info-panel">
                     <h3>Scenario Info</h3>
                     <p id="scenario-desc">Select a scenario to begin.</p>
                 </div>
             </section>
 
-            <section class="visualization">
-                <h2>Memory Layout Visualizer</h2>
-                <div class="memory-stack">
-                    <div class="memory-zone" id="zone-u">
-                        <span class="zone-label">Zone U (Unsafe)</span>
-                        <div class="buffer" id="buffer-vis">Buffer [64B]</div>
-                    </div>
-                    <div class="arrow-down">⬇️ Overflow Path</div>
-                    <div class="memory-zone" id="zone-s">
-                        <span class="zone-label">Zone S (Safe)</span>
-                        <div class="secret" id="secret-vis">Secret Key <span class="lock-icon">🔒</span></div>
+            <section class="visualization-panel">
+                <div class="vis-header">
+                    <h2>Live Memory State</h2>
+                    <div class="vis-status-overlay" id="vis-overlay">System Ready</div>
+                </div>
+
+                <div class="memory-container">
+                    <div class="memory-flex-container">
+                        <!-- Buffer Zone -->
+                        <div class="mem-block buffer-zone" id="vis-buffer">
+                            <span class="addr-tag">0x...00</span>
+                            <div class="label">ZONE U (Buffer)</div>
+                            <div class="data-slots" id="buffer-slots">
+                                <!-- Filled by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Padding/Canary -->
+                        <div class="mem-block connector-zone" id="vis-canary">
+                            <span class="addr-tag">+64</span>
+                            <div class="label">PADDING/CANARY</div>
+                            <div class="data-bar"></div>
+                        </div>
+
+                        <!-- Pointer -->
+                        <div class="mem-block pointer-zone" id="vis-pointer">
+                            <span class="addr-tag">+72</span>
+                            <div class="label">TARGET PTR</div>
+                            <div class="ptr-value" id="ptr-value">0x...</div>
+                            <div class="ptr-arrow" id="ptr-arrow"></div>
+                        </div>
+
+                        <!-- Secret Zone -->
+                        <div class="mem-block secret-zone" id="vis-secret">
+                            <span class="addr-tag" id="secret-addr">0x????</span>
+                            <div class="label">ZONE S (Secret)</div>
+                            <div class="lock-icon" id="secret-lock">🔒</div>
+                            <div class="secret-content" id="secret-content">top_secret_data</div>
+                        </div>
+
+                        <!-- Visual helpers for animations -->
+                        <div id="attack-projectile" class="attack-projectile hidden"></div>
+                        <div id="block-shield" class="block-shield hidden">🛡️</div>
                     </div>
                 </div>
-                <div id="attack-animation" class="attack-overlay hidden">
-                    <div class="injection-stream"></div>
+
+                <div class="exploit-steps" id="exploit-steps">
+                    <div class="step" id="step-1">1. Inject Payload</div>
+                    <div class="step" id="step-2">2. Overflow Buffer</div>
+                    <div class="step" id="step-3">3. Overwrite Ptr</div>
+                    <div class="step" id="step-4">4. Access Secret</div>
                 </div>
             </section>
 
@@ -83,4 +127,5 @@
     </div>
     <script src="/static/script.js"></script>
 </body>
+
 </html>

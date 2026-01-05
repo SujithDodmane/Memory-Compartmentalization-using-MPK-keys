@@ -115,6 +115,9 @@ int main(int argc, char** argv) {
     sa.sa_sigaction = segfault_handler;
     sigaction(SIGSEGV, &sa, NULL);
 
+    // 0. Disable buffering
+    setbuf(stdout, NULL);
+
     init_timeline();
     LOG_INFO("Starting (Phase 5/6: HYBRID ASLR + MPK PROTECTION)");
     

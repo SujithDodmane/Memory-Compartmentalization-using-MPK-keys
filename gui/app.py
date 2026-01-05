@@ -16,18 +16,23 @@ def stream_command(command):
     """
     Generator that runs a shell command and yields output line by line.
     """
+    env = os.environ.copy()
+    env['PYTHONUNBUFFERED'] = '1'
+
     process = subprocess.Popen(
-        command,
+        f"stdbuf -oL -eL {command}",
         shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        bufsize=1
+        bufsize=0, # Unbuffered
+        env=env
     )
     
     # Yield output as it comes
     for line in iter(process.stdout.readline, ''):
-        yield f"data: {line}\n\n"
+        if line:
+            yield f"data: {line}\n\n"
         
     process.stdout.close()
     return_code = process.wait()
@@ -43,7 +48,7 @@ def stream_command(command):
 def stream(scenario):
     cmd = ""
     if scenario == 'build':
-        cmd = "make clean && make all aslr_app protected_app"
+        cmd = "make clean && make all aslr_app protected_app && echo 'Build Complete'"
     elif scenario == 'baseline':
         cmd = "make run_attack"
     elif scenario == 'aslr':
@@ -53,7 +58,7 @@ def stream(scenario):
     else:
         return jsonify({"error": "Unknown scenario"}), 400
 
-    return Response(stream_command(cmd), mimetype='text/event-stream')
+    return Response(stream_command(cmd), mimetype='text/event-stream', headers={'X-Accel-Buffering': 'no'})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=5000)

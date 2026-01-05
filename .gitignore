@@ -20,3 +20,7 @@ Thumbs.db
 
 # Project specific
 vulnerable_app
+baseline_app
+aslr_app
+protected_app
+server.log
