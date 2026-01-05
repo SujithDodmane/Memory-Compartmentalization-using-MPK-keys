@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Defense Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="shield-icon">🛡️</span>
+                <h1>Memory Defense <span class="highlight">OS</span></h1>
+            </div>
+            <div class="status-bar">
+                <div class="status-item" id="status-protection">
+                    <span class="label">Protection Level</span>
+                    <span class="value">NONE</span>
+                </div>
+                <div class="status-item" id="status-system">
+                    <span class="label">System Status</span>
+                    <span class="value safe">SECURE</span>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section class="controls">
+                <h2>Control Center</h2>
+                <div class="button-group">
+                    <button id="btn-build" class="action-btn" onclick="runScenario('build')">
+                        <span class="icon">🛠️</span> Build Project
+                    </button>
+                    <button id="btn-baseline" class="action-btn danger" onclick="runScenario('baseline')">
+                        <span class="icon">💀</span> Run Baseline Attack
+                    </button>
+                    <button id="btn-aslr" class="action-btn warning" onclick="runScenario('aslr')">
+                        <span class="icon">🎲</span> Run ASLR Attack
+                    </button>
+                    <button id="btn-protected" class="action-btn success" onclick="runScenario('protected')">
+                        <span class="icon">🔒</span> Run Protected App
+                    </button>
+                </div>
+                
+                <div class="info-panel">
+                    <h3>Scenario Info</h3>
+                    <p id="scenario-desc">Select a scenario to begin.</p>
+                </div>
+            </section>
+
+            <section class="visualization">
+                <h2>Memory Layout Visualizer</h2>
+                <div class="memory-stack">
+                    <div class="memory-zone" id="zone-u">
+                        <span class="zone-label">Zone U (Unsafe)</span>
+                        <div class="buffer" id="buffer-vis">Buffer [64B]</div>
+                    </div>
+                    <div class="arrow-down">⬇️ Overflow Path</div>
+                    <div class="memory-zone" id="zone-s">
+                        <span class="zone-label">Zone S (Safe)</span>
+                        <div class="secret" id="secret-vis">Secret Key <span class="lock-icon">🔒</span></div>
+                    </div>
+                </div>
+                <div id="attack-animation" class="attack-overlay hidden">
+                    <div class="injection-stream"></div>
+                </div>
+            </section>
+
+            <section class="terminal-window">
+                <div class="terminal-header">
+                    <span class="dot red"></span>
+                    <span class="dot yellow"></span>
+                    <span class="dot green"></span>
+                    <span class="title">terminal_output.log</span>
+                </div>
+                <div class="terminal-content" id="terminal-output">
+                    <div class="line">Waiting for command...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="/static/script.js"></script>
+</body>
+</html>
