@@ -102,3 +102,27 @@ void log_attacker_success(const char* msg) {
 void log_attacker_failure(const char* msg) {
     printf(COLOR_RED "  ✗ %s" COLOR_RESET "\n", msg);
 }
+
+void dump_memory_state(const char* zone_name, void* addr, size_t len) {
+    // Format: [MEM_DUMP] ZONE_NAME HEX_STRING|CHAR_STRING
+    printf("[MEM_DUMP] %s ", zone_name);
+    
+    unsigned char* p = (unsigned char*)addr;
+    
+    // Hex part
+    for (size_t i = 0; i < len; i++) {
+        printf("%02X", p[i]);
+    }
+    
+    printf("|");
+    
+    // Char part (replace non-printable with '.')
+    for (size_t i = 0; i < len; i++) {
+        if (p[i] >= 32 && p[i] <= 126) {
+            printf("%c", p[i]);
+        } else {
+            printf(".");
+        }
+    }
+    printf("\n");
+}

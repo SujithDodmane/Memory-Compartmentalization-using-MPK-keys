@@ -6,8 +6,8 @@
 #include "output.h"
 
 #define PAGE_SIZE 4096
-#define BUFFER_SIZE 64
-#define SECRET_SIZE 64
+#define BUFFER_SIZE 16
+#define SECRET_SIZE 16
 
 // --- Zone Structures ---
 typedef struct {
@@ -36,7 +36,7 @@ void setup_memory() {
 
     // Initialize
     zone_u->victim_ptr = (char*)&zone_u->MAGIC_canary; // Default: points to safe location in Zone U
-    strcpy(zone_s->secret, "SUPER_SECRET_PASSWORD_12345");
+    strcpy(zone_s->secret, "SECRET_DATA_123");
     
     LOG_ZONE("Zone U allocated at %p", zone_u);
     LOG_ZONE("Zone S allocated at %p", zone_s);
@@ -47,8 +47,13 @@ void vulnerable_function(char* input, size_t len) {
     
     // VULNERABILITY: strcpy/memcpy overflow
     // We expect input to overflow buffer and overwrite victim_ptr
+    
+    dump_memory_state("ZONE_U", zone_u->buffer, BUFFER_SIZE);
+    
     LOG_ATTACK("Processing input...");
     memcpy(zone_u->buffer, input, len); // Using memcpy to allow binary payload
+    
+    dump_memory_state("ZONE_U", zone_u->buffer, BUFFER_SIZE);
     
     LOG_ATTACK("Input processing complete. victim_ptr is now: %p", zone_u->victim_ptr);
 
@@ -64,6 +69,7 @@ void vulnerable_function(char* input, size_t len) {
 void dump_secret() {
     LOG_INFO("Reading secret from Zone S...");
     printf("Content of Secret Zone: '%s'\n", zone_s->secret);
+    dump_memory_state("ZONE_S", zone_s->secret, SECRET_SIZE);
 }
 
 int main(int argc, char** argv) {
@@ -86,6 +92,10 @@ int main(int argc, char** argv) {
         zone_s, PAGE_SIZE, 3
     );
     
+    // Initial Dump
+    dump_memory_state("ZONE_U", zone_u->buffer, BUFFER_SIZE);
+    dump_memory_state("ZONE_S", zone_s->secret, SECRET_SIZE);
+    
     // Read Input
     if (argc >= 2 && strcmp(argv[1], "-") == 0) {
         // Interactive Mode (STDIN)
@@ -100,6 +110,9 @@ int main(int argc, char** argv) {
         
         LOG_ZONE("Input received from STDIN. Size: %d bytes", bytes_read);
         
+        // DUMP Input for visualization sync
+        dump_memory_state("INPUT_PREVIEW", buffer, bytes_read);
+        
         log_timeline_event("Invoking vulnerable function");
         vulnerable_function(buffer, bytes_read);
     } else {
@@ -112,6 +125,9 @@ int main(int argc, char** argv) {
         char* input = malloc(fsize);
         fread(input, 1, fsize, f);
         fclose(f);
+
+        // DUMP Input for visualization sync
+        dump_memory_state("INPUT_PREVIEW", input, fsize);
 
         log_timeline_event("Invoking vulnerable function");
         vulnerable_function(input, fsize);

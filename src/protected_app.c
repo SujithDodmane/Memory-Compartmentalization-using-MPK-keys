@@ -8,8 +8,8 @@
 #include "mpk_lib.h"
 
 #define PAGE_SIZE 4096
-#define BUFFER_SIZE 64
-#define SECRET_SIZE 64
+#define BUFFER_SIZE 16
+#define SECRET_SIZE 16
 
 // --- Zone Structures ---
 typedef struct {
@@ -59,7 +59,7 @@ void setup_memory() {
     LOG_INFO("Allocated Protection Key: %d", zone_s_pkey);
     
     // We initially allow write to setup the secret, then we lock it
-    strcpy(zone_s->secret, "SUPER_SECRET_PASSWORD_12345");
+    strcpy(zone_s->secret, "SECRET_DATA_123");
     
     // LOCK ZONE S (Default Deny)
     LOG_SECURE("Applying Default-Deny Policy...");
@@ -82,6 +82,7 @@ void safe_read_secret() {
     
     // 2. DO CRITICAL WORK
     printf("Content of Secret Zone: '%s'\n", zone_s->secret);
+    dump_memory_state("ZONE_S", zone_s->secret, SECRET_SIZE);
     
     // 3. DISABLE ACCESS
     mpk_revoke_access(zone_s_pkey, zone_s, PAGE_SIZE);
@@ -95,8 +96,12 @@ void vulnerable_function(char* input, size_t len) {
     // So if attacker overwrites victim_ptr to point to Zone S,
     // the write '*victim_ptr = X' will FAIL.
     
+    dump_memory_state("ZONE_U", zone_u->buffer, BUFFER_SIZE);
+    
     LOG_ATTACK("Processing input...");
     memcpy(zone_u->buffer, input, len); 
+    
+    dump_memory_state("ZONE_U", zone_u->buffer, BUFFER_SIZE);
     
     LOG_ATTACK("Input processing complete. victim_ptr is now: %p", zone_u->victim_ptr);
 
@@ -128,6 +133,10 @@ int main(int argc, char** argv) {
         zone_s, PAGE_SIZE, 0 // 0 = NO ACCESS
     );
     
+    // Initial Dump
+    dump_memory_state("ZONE_U", zone_u->buffer, BUFFER_SIZE);
+    // dump_memory_state("ZONE_S", zone_s->secret, SECRET_SIZE); // Can't dump S here, it's locked!
+    
     // Interactive Mode (Standard for the exploit script)
     if (argc >= 2 && strcmp(argv[1], "-") == 0) {
         LOG_INFO("Reading input from STDIN...");
@@ -137,6 +146,9 @@ int main(int argc, char** argv) {
         if (bytes_read < 0) return 1;
         
         LOG_ZONE("Input received. Size: %d", bytes_read);
+
+        // DUMP Input for visualization sync
+        dump_memory_state("INPUT_PREVIEW", buffer, bytes_read);
         
         log_timeline_event("Invoking vulnerable function");
         vulnerable_function(buffer, bytes_read);

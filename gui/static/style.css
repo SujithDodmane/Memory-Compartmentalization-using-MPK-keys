@@ -259,8 +259,8 @@ h2 {
     flex-direction: column;
     gap: 5px;
     /* Tight packing */
-    width: 60%;
-    max-width: 400px;
+    width: 90%;
+    max-width: 600px;
     position: relative;
 }
 
@@ -314,7 +314,7 @@ h2 {
 }
 
 .secret-zone {
-    height: 100px;
+    height: 120px;
     border-color: var(--accent-green);
 }
 
@@ -322,17 +322,23 @@ h2 {
 .data-slots {
     display: flex;
     flex-wrap: wrap;
-    gap: 2px;
+    gap: 4px;
     width: 100%;
     justify-content: center;
 }
 
 .byte {
-    width: 8px;
-    height: 8px;
+    width: 24px;
+    height: 24px;
     background: #30363d;
-    border-radius: 1px;
+    border-radius: 2px;
     transition: background 0.1s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
 }
 
 .byte.fill {
@@ -528,7 +534,7 @@ h2 {
 }
 
 .lock-icon.pulse {
-   /* Animation removed */
+    /* Animation removed */
 }
 
 /* Attack Visuals */

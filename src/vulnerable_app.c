@@ -4,8 +4,9 @@
 #include "output.h"
 
 // --- Configuration ---
-#define BUFFER_SIZE 64
-#define SECRET_SIZE 64
+// --- Configuration ---
+#define BUFFER_SIZE 16
+#define SECRET_SIZE 16
 
 // --- Simulated Memory Layout ---
 // In Phase 2, we use a struct to guarantee adjacency for the demo.
@@ -21,21 +22,33 @@ MemoryLayout global_memory;
 void vulnerable_function(char* input) {
     LOG_INFO("Vulnerable function called with input input of length %lu", strlen(input));
     
+    // DUMP BEFORE
+    dump_memory_state("ZONE_U", global_memory.zone_u_buffer, BUFFER_SIZE);
+    
     // VULNERABILITY: strcpy does not check bounds!
     LOG_ATTACK("Processing input (Safe Copy? NO)");
+    
+    // Mimic "filling" animation by smaller chunks if we wanted, 
+    // but for now we just dump afterwards to show the change.
     strcpy(global_memory.zone_u_buffer, input); 
+    
+    // DUMP AFTER
+    dump_memory_state("ZONE_U", global_memory.zone_u_buffer, BUFFER_SIZE);
+    // Also dump secret to show if it got hit
+    dump_memory_state("ZONE_S", global_memory.zone_s_secret, SECRET_SIZE);
     
     LOG_ATTACK("Input processing complete");
 }
 
 void setup_secret() {
-    strcpy(global_memory.zone_s_secret, "SUPER_SECRET_PASSWORD_12345");
+    strcpy(global_memory.zone_s_secret, "SECRET_DATA_123");
     LOG_INFO("Secret initialized in Zone S");
 }
 
 void dump_secret() {
     LOG_INFO("Reading secret from Zone S...");
     printf("Content of Secret Zone: '%s'\n", global_memory.zone_s_secret);
+    dump_memory_state("ZONE_S", global_memory.zone_s_secret, SECRET_SIZE);
 }
 
 int main(int argc, char** argv) {
@@ -61,6 +74,10 @@ int main(int argc, char** argv) {
         global_memory.zone_s_secret, SECRET_SIZE, 3  // 3 = READ | WRITE (No Protection)
     );
     
+    // Initial Dump
+    dump_memory_state("ZONE_U", global_memory.zone_u_buffer, BUFFER_SIZE);
+    dump_memory_state("ZONE_S", global_memory.zone_s_secret, SECRET_SIZE);
+    
     // 4. Read Malicious Input
     FILE* f = fopen(argv[1], "rb");
     if (!f) {
@@ -77,7 +94,11 @@ int main(int argc, char** argv) {
     input[fsize] = 0;
     fclose(f);
     
-    LOG_ZONE("Input loaded from file. Size: %ld bytes (Buffer Size: %d)", fsize, BUFFER_SIZE);
+    LOG_ZONE("Input loaded from file: %s", argv[1]);
+    LOG_ZONE("Input Size: %ld bytes (Buffer Size: %d)", fsize, BUFFER_SIZE);
+
+    // DUMP Input for visualization sync
+    dump_memory_state("INPUT_PREVIEW", input, fsize);
 
     // 5. Trigger Vulnerability
     log_timeline_event("Invoking vulnerable function");
@@ -87,8 +108,8 @@ int main(int argc, char** argv) {
     log_timeline_event("Checking secret integrity");
     dump_secret();
 
-    // In Phase 2, we EXPECT the secret to be corrupted/overwritten if input > 64
-    if (strcmp(global_memory.zone_s_secret, "SUPER_SECRET_PASSWORD_12345") != 0) {
+    // In Phase 2, we EXPECT the secret to be corrupted/overwritten if input > 16
+    if (strcmp(global_memory.zone_s_secret, "SECRET_DATA_123") != 0) {
         log_attacker_success("Secret has been OVERWRITTEN/CORRUPTED!");
         log_timeline_event("Integrity Check FAILED");
     } else {

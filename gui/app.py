@@ -48,7 +48,7 @@ def stream_command(command):
 def stream(scenario):
     cmd = ""
     if scenario == 'build':
-        cmd = "make clean && make all aslr_app protected_app && echo 'Build Complete'"
+        cmd = "make clean && make all aslr_app protected_app && python3 extract_secret.py && echo 'Build Complete'"
     elif scenario == 'baseline':
         cmd = "make run_attack"
     elif scenario == 'aslr':

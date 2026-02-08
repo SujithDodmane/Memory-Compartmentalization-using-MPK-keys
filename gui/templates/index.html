@@ -77,14 +77,14 @@
 
                         <!-- Padding/Canary -->
                         <div class="mem-block connector-zone" id="vis-canary">
-                            <span class="addr-tag">+64</span>
+                            <span class="addr-tag">+16</span>
                             <div class="label">PADDING/CANARY</div>
                             <div class="data-bar"></div>
                         </div>
 
                         <!-- Pointer -->
                         <div class="mem-block pointer-zone" id="vis-pointer">
-                            <span class="addr-tag">+72</span>
+                            <span class="addr-tag">+24</span>
                             <div class="label">TARGET PTR</div>
                             <div class="ptr-value" id="ptr-value">0x...</div>
                             <div class="ptr-arrow" id="ptr-arrow"></div>
@@ -94,8 +94,10 @@
                         <div class="mem-block secret-zone" id="vis-secret">
                             <span class="addr-tag" id="secret-addr">0x????</span>
                             <div class="label">ZONE S (Secret)</div>
-                            <div class="lock-icon" id="secret-lock">🔒</div>
-                            <div class="secret-content" id="secret-content">top_secret_data</div>
+                            <div class="lock-icon" id="lock-icon">🔒</div>
+                            <div class="data-slots" id="secret-slots">
+                                <!-- JS will fill this with 16 blocks -->
+                            </div>
                         </div>
 
                         <!-- Visual helpers for animations -->

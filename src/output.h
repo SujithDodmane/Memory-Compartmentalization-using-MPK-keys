@@ -43,4 +43,7 @@ void log_attacker_step(const char* step_description);
 void log_attacker_success(const char* msg);
 void log_attacker_failure(const char* msg);
 
+// 5. Memory Dump for Visualization
+void dump_memory_state(const char* zone_name, void* addr, size_t len);
+
 #endif // OUTPUT_H
