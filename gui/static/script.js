@@ -245,11 +245,12 @@ function processVisualizationQueue() {
         const slots = document.querySelectorAll('#buffer-slots .byte');
         const update = task.data;
         const totalChars = update.char.length;
+        const maxIter = Math.min(totalChars, 16);
         let i = 0;
 
         // Slowed down animation for fill (60ms per byte)
         const interval = setInterval(() => {
-            if (i >= totalChars) {
+            if (i >= maxIter) {
                 clearInterval(interval);
                 isVisualizing = false;
                 processVisualizationQueue(); // Next task
