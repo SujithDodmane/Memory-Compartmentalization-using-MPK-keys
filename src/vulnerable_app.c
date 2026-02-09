@@ -41,7 +41,10 @@ void vulnerable_function(char* input) {
 }
 
 void setup_secret() {
-    strcpy(global_memory.zone_s_secret, "SECRET_DATA_123");
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
+    strcpy(global_memory.zone_s_secret, "CONFIDENTIALDATA");
+#pragma GCC diagnostic pop
     LOG_INFO("Secret initialized in Zone S");
 }
 

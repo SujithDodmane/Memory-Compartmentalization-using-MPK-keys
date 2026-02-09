@@ -8,8 +8,8 @@ def main():
             content = f.read()
 
         # Find the secret string in setup_secret function
-        # Look for strcpy(global_memory.zone_s_secret, "...")
-        match = re.search(r'strcpy\(global_memory\.zone_s_secret,\s*"([^"]*)"\)', content)
+        # Look for strcpy(global_memory.zone_s_secret, "...") OR memcpy(..., "...", ...)
+        match = re.search(r'(?:strcpy|memcpy)\(global_memory\.zone_s_secret,\s*"([^"]*)"', content)
         if match:
             secret = match.group(1)
             # Pad or truncate to 16 bytes as defined in app
@@ -22,10 +22,9 @@ def main():
             
             # Convert to bytes, pad with 0
             secret_bytes = secret.encode('utf-8')
-            if len(secret_bytes) >= 16:
-                 secret_bytes = secret_bytes[:15] + b'\0' # Ensure null termination if too long?
-                 # Actually C strcpy stops at null.
-            else:
+            if len(secret_bytes) > 16:
+                 secret_bytes = secret_bytes[:16] 
+            elif len(secret_bytes) < 16:
                  secret_bytes += b'\0' * (16 - len(secret_bytes))
 
             # Hex string

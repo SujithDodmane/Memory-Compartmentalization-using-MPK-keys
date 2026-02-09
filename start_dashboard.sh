@@ -29,10 +29,23 @@ fuser -k $PORT/tcp 2>/dev/null
 
 echo -e "${GREEN}[SUCCESS] Starting Memory Defense Dashboard...${NC}"
 echo -e "${BLUE}[INFO] Presentation Mode Active${NC}"
-echo -e "${BLUE}[INFO] Access the dashboard at: $URL${NC}"
+echo -e "${BLUE}[INFO] Access Local: $URL${NC}"
+
+# Detect Host-Only IP (usually enp0s8 or eth1 in VirtualBox)
+HOST_IP=$(ip -4 addr show enp0s8 2>/dev/null | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | head -n 1)
+if [ -z "$HOST_IP" ]; then
+    # Fallback: try to find any 192.168.56.x address
+    HOST_IP=$(ip -4 addr | grep -oP '(?<=inet\s)192\.168\.56\.\d+' | head -n 1)
+fi
+
+if [ ! -z "$HOST_IP" ]; then
+    echo -e "${GREEN}[INFO] Access from Windows: http://$HOST_IP:$PORT${NC}"
+else
+    echo -e "${BLUE}[INFO] External IP not detected automatically. Run 'ip a' to find it.${NC}"
+fi
 
 # Start Server in Background
-python3 gui/app.py > server.log 2>&1 &
+python3 gui/app.py  > server.log 2>&1 &
 SERVER_PID=$!
 
 # Wait for server to be ready

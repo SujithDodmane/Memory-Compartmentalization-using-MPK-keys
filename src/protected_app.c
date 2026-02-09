@@ -59,7 +59,7 @@ void setup_memory() {
     LOG_INFO("Allocated Protection Key: %d", zone_s_pkey);
     
     // We initially allow write to setup the secret, then we lock it
-    strcpy(zone_s->secret, "SECRET_DATA_123");
+    strcpy(zone_s->secret, "CONFIDENTIALDATA");
     
     // LOCK ZONE S (Default Deny)
     LOG_SECURE("Applying Default-Deny Policy...");

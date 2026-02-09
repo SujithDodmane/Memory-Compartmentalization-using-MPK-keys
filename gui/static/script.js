@@ -269,10 +269,10 @@ function processVisualizationQueue() {
                     slot.classList.add('flash-cell');
                     setTimeout(() => slot.classList.remove('flash-cell'), 200);
 
-                    if (char === 'A' || char === 'B' || char === 'X') {
-                        slot.classList.add('malicious');
+                    if (char !== '.' && char !== '\0') {
+                        slot.classList.add('malicious-buffer');
                     } else {
-                        slot.classList.remove('malicious');
+                        slot.classList.remove('malicious-buffer');
                     }
                 }
             }
@@ -340,10 +340,10 @@ function processVisualizationQueue() {
         for (let i = 0; i < 16; i++) {
             if (i < update.char.length && slots[i]) {
                 slots[i].textContent = update.char[i];
-                if (['A', 'B', 'X'].includes(update.char[i])) {
-                    slots[i].classList.add('malicious');
+                if (update.char[i] !== '.' && update.char[i] !== '\0') {
+                    slots[i].classList.add('malicious-buffer');
                 } else {
-                    slots[i].classList.remove('malicious');
+                    slots[i].classList.remove('malicious-buffer');
                 }
             }
         }

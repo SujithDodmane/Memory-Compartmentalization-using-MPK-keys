@@ -36,8 +36,9 @@ void setup_memory() {
 
     // Initialize
     zone_u->victim_ptr = (char*)&zone_u->MAGIC_canary; // Default: points to safe location in Zone U
-    strcpy(zone_s->secret, "SECRET_DATA_123");
-    
+    // memcpy(zone_s->secret, "CONFIDENTIALDATA", SECRET_SIZE);
+    strcpy(zone_s->secret, "CONFIDENTIALDATA");
+
     LOG_ZONE("Zone U allocated at %p", zone_u);
     LOG_ZONE("Zone S allocated at %p", zone_s);
 }
@@ -62,7 +63,12 @@ void vulnerable_function(char* input, size_t len) {
     log_timeline_event("Dereferencing victim_ptr");
     
     // We write a byte to the target
-    *zone_u->victim_ptr = 'X'; 
+    // *zone_u->victim_ptr = 'X'; 
+
+    char msg[]="PAYLOAD_ATTACK!!";
+    for(int i=0;msg[i]!='\0';i++)
+        *(zone_u->victim_ptr+i) = msg[i];
+
     LOG_ATTACK("Wrote 'X' to address %p", zone_u->victim_ptr);
 }
 

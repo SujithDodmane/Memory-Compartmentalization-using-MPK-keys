@@ -351,6 +351,11 @@ h2 {
     box-shadow: 0 0 5px var(--accent-red);
 }
 
+.byte.malicious-buffer {
+    background: var(--accent-blue);
+    box-shadow: 0 0 5px var(--accent-blue);
+}
+
 .ptr-value {
     font-family: var(--font-mono);
     font-size: 1rem;
