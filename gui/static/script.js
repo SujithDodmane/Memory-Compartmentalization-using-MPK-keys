@@ -12,7 +12,8 @@ let secretDataCache = {
     hex: "5345435245545f444154415f3132332e", // "SECRET_DATA_123."
     char: "SECRET_DATA_123."
 };
-let hasSeenInputPreview = false; // Reset on session start 
+
+let hasSeenInputPreview = false; // Reset on session start  
 
 // Initialize Visualizer Grid
 function initVisualizer() {
@@ -157,6 +158,8 @@ function runScenario(scenario) {
         if (msg.includes("Zone S allocated at")) {
             document.getElementById('vis-secret').classList.add('flash-green');
         }
+
+
 
         if (msg.includes("Dereferencing victim_ptr")) {
             highlightStep(3); // Overwrite/Dereference Step
@@ -334,6 +337,7 @@ function processVisualizationQueue() {
         processVisualizationQueue();
     }
     else if (task.type === 'buffer_snap') {
+        // ... (existing buffer_snap logic) ...
         // Instant update for buffer (final state confirmation)
         const slots = document.querySelectorAll('#buffer-slots .byte');
         const update = task.data;
@@ -350,6 +354,7 @@ function processVisualizationQueue() {
         isVisualizing = false;
         processVisualizationQueue();
     }
+
 }
 
 function updateBufferVisualizer(hexData, charData, isPreview = false) {
@@ -366,6 +371,10 @@ function updateSecretVisualizer(hexData, charData, isAnimated = true) {
     } else {
         addToQueue('secret_snap', { hex: hexData, char: charData });
     }
+}
+
+function updateCanaryVisualizer(hexData, charData) {
+    addToQueue('canary_snap', { hex: hexData, char: charData });
 }
 
 function renderSecret() {
@@ -447,6 +456,10 @@ function toggleSecret() {
     }
     renderSecret();
 }
+
+// function updateCanaryVisualizer removed per user request
+// function parseHexDump removed per user request
+// function renderCanary removed per user request
 
 
 function appendLog(text) {

@@ -35,6 +35,7 @@ void setup_memory() {
     if (zone_s == MAP_FAILED) { perror("mmap zone_s"); exit(1); }
 
     // Initialize
+    zone_u->MAGIC_canary = 0; // Initialize to 0 so we can see the overwrite clearly
     zone_u->victim_ptr = (char*)&zone_u->MAGIC_canary; // Default: points to safe location in Zone U
     // memcpy(zone_s->secret, "CONFIDENTIALDATA", SECRET_SIZE);
     strcpy(zone_s->secret, "CONFIDENTIALDATA");
@@ -50,11 +51,14 @@ void vulnerable_function(char* input, size_t len) {
     // We expect input to overflow buffer and overwrite victim_ptr
     
     dump_memory_state("ZONE_U", zone_u->buffer, BUFFER_SIZE);
+    // Explicitly dump canary for visualization
+    dump_memory_state("ZONE_CANARY", (char*)&zone_u->MAGIC_canary, sizeof(long));
     
     LOG_ATTACK("Processing input...");
     memcpy(zone_u->buffer, input, len); // Using memcpy to allow binary payload
     
     dump_memory_state("ZONE_U", zone_u->buffer, BUFFER_SIZE);
+    dump_memory_state("ZONE_CANARY", (char*)&zone_u->MAGIC_canary, sizeof(long));
     
     LOG_ATTACK("Input processing complete. victim_ptr is now: %p", zone_u->victim_ptr);
 

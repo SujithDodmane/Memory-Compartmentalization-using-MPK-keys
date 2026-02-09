@@ -66,6 +66,7 @@ void setup_memory() {
     mpk_revoke_access(zone_s_pkey, zone_s, PAGE_SIZE);
     
     // Setup Zone U
+    zone_u->MAGIC_canary = 0; 
     zone_u->victim_ptr = (char*)&zone_u->MAGIC_canary; 
     
     LOG_ZONE("Zone U allocated at %p", zone_u);
@@ -102,6 +103,7 @@ void vulnerable_function(char* input, size_t len) {
     memcpy(zone_u->buffer, input, len); 
     
     dump_memory_state("ZONE_U", zone_u->buffer, BUFFER_SIZE);
+    dump_memory_state("ZONE_CANARY", (char*)&zone_u->MAGIC_canary, sizeof(long));
     
     LOG_ATTACK("Input processing complete. victim_ptr is now: %p", zone_u->victim_ptr);
 
