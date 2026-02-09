@@ -1,129 +1,173 @@
 # Hybrid Fine-Grained In-Process Memory Compartmentalization (ASLR + MPK)
-## Project Report
 
-### 1. Introduction
-Memory safety vulnerabilities, specifically buffer overflows and pointer corruption, remain one of the most critical classes of security flaws in modern software. While traditional defenses like Address Space Layout Randomization (ASLR) provide a significant barrier, they are often bypassed through information leaks. This project implements and demonstrates a hybrid protection mechanism that combines ASLR with Memory Protection Keys (MPK)-style compartmentalization to enforce fine-grained, in-process isolation, effectively neutralizing attacks even when addresses are leaked.
+## 📌 Project Overview
 
-### 2. Problem Definition
-#### Problem Statement
-Standard memory protections are insufficient against sophisticated attacks.
--   **Buffer Overflows**: Allow attackers to overwrite adjacent memory structures.
--   **ASLR Limitations**: Once a single memory address is leaked (e.g., via a format string vulnerability or side-channel), the randomization is defeated, allowing unrestricted access to the process memory.
--   **Granularity Issues**: Page-level protections (mprotect) are often too coarse and expensive for frequent in-process context switching.
+This project demonstrates a novel **Hybrid Protection System** that effectively combines **Address Space Layout Randomization (ASLR)** with **Memory Protection Keys (MPK)** simulations. The goal is to enforce fine-grained, in-process memory isolation to neutralize buffer overflow and pointer corruption attacks, even when traditional defenses like ASLR are bypassed.
 
-#### Background Information
-Historically, the "arms race" between attackers and defenders has led from stack cookies to ASLR and DEP/NX. However, techniques like Return-Oriented Programming (ROP) and Just-In-Time (JIT) spraying have continuously challenged these defenses. Intel's Memory Protection Keys (MPK/PKU) offer a hardware-based solution for thread-local permission switching, allowing for performant compartmentalization. This project simulates this architecture to demonstrate its efficacy.
+### The Problem
+Classic memory defenses are insufficient against modern attacks:
+- **Buffer Overflows**: allow attackers to overwrite adjacent memory control structures.
+- **ASLR Weakness**: Randomized addresses can be bypassed if a single pointer is leaked (e.g., via format string vulnerabilities), rendering the protection useless.
+- **Coarse Granularity**: Standard page-permissions (`mprotect`) are too slow for frequent context switches.
 
-### 3. Objectives
-#### Primary Objectives
--   To develop a vulnerable application demonstrating classic stack-based buffer overflow and pointer hijacking.
--   To implement an ASLR-enabled scenario and demonstrate how standard ASLR is bypassed via information leaks.
--   To implement a **Hybrid Protection System** (ASLR + MPK Simulation) that prevents data theft even when the attacker knows the memory layout.
+### The Solution
+This project implements a "Zero-Trust" architecture within a single process. By using simulated MPK gates, we ensure that **knowing the address (ASLR bypass) is not enough to access the data**. The attacker must also hold the correct "key" (hardware permission), effectively blocking unauthorized access even after a successful exploit.
 
-#### Secondary Objectives
--   To create a real-time **Interactive GUI Dashboard** that visualizes memory operations, attack vectors, and protection mechanisms for educational and demonstration purposes.
--   To provide a comparative analysis of the attacker's success rate across Baseline, ASLR, and Protected scenarios.
+---
 
-### 4. Methodology
-#### 4.1 Approach
-The project adopts a "Red Team vs. Blue Team" simulation approach.
-1.  **Vulnerable Target**: A C application with a strictly defined memory layout (Buffer -> Canary -> Pointer -> Secret).
-2.  **Attack Vector**: A Python-based exploit generator that calculates offsets, parses leaked addresses, and constructs malicious payloads.
-3.  **Visual Feedback**: A web-based dashboard (Flask + EventSource) that streams execution logs and visualizes memory state changes in real-time.
+## 🚀 Features
 
-**(Conceptual Flow)**
-[Attacker] -> [Inject Payload] -> [Buffer Overflow] -> [Overwrite Pointer] -> [Access Secret]
-                                      |
-                               (Protection Check)
-                                      v
-                             [Block/Trust/Trap]
+- **Vulnerable Application**: A C program intentionally designed with stack-based buffer overflows.
+- **ASLR Demonstration**: Shows how memory randomization works and how it fails against pointer leaks.
+- **Hybrid Protection**: A robust defense layer that uses "Guard Zones" and permission checks to trap illegal access.
+- **Attack Simulation**: Automated Python scripts that act as a "Red Team" to generate payloads, calculate offsets, and execute exploits.
+- **Real-Time Dashboard**: A "Cyberpunk"-themed web interface (Flask + EventSource) that visualizes RAM memory, buffer fills, pointer corruption, and defense activation in real-time.
+- **Performance Benchmark**: Tools to measure the overhead of the protection mechanism.
 
-#### 4.2 Procedures
-1.  **Baseline Implementation**: Create `vulnerable_app.c` with no protection to establish a control case.
-2.  **ASLR Integration**: Modify the app to allocate memory at random offsets (`aslr_app.c`).
-3.  **Protection Logic**: Implement `protected_app.c` using a "monitor" design pattern to simulate MPK checks before pointer dereferencing.
-4.  **Exploit Development**: Write `run_exploit.py` to automate the attack chain (Leak -> Calculate -> Pwn).
-5.  **GUI Development**: Build a Frontend (HTML/CSS/JS) to visualize the binary memory slots and attack progress.
+---
 
-### 5. Project Execution
-#### 5.1 Planning and Design
--   **Memory Model**: more complex than a standard stack, designed with a custom struct `MemoryLayout` to facilitate easier visualization of the "Buffer Overflow to Pointer Hijack" path.
--   **Safety**: Decided to use simulated MPK logic in user-space software checks to ensure the demo runs on non-server hardware while proving the architectural concept.
+## 🛠 Prerequisites
 
-#### 5.2 Implementation
--   **C Backend**: Implemented `Zone` structures. The "Protected" app separates the `Secret` execution domain from the `Buffer` domain.
--   **Python Interfacing**: Used `subprocess.Popen` for real-time interaction with the compiled binaries, capturing `stdout` to drive the GUI.
--   **GUI**: Implemented a "Cyberpunk" aesthetic dashboard to make the abstract memory concepts visually engaging. Added `EventSource` for server-sent events to stream the attack steps.
+Before running the project, ensure your environment handles the following dependencies:
 
-### 6. Tools and Techniques Used
-#### 6.1 Tools
--   **GCC**: Compiler for the C target applications.
--   **Python 3**: For the exploit generation engine and the Flask web server.
--   **Flask**: Web framework for the dashboard backend.
--   **HTML5/CSS3/JavaScript**: For the frontend visualization (Canvas/DOM manipulation).
--   **Bash**: For orchestration scripts (`start_dashboard.sh`, `run_full_demo.sh`).
+### System Requirements
+- **Operating System**: Linux (Recommended: Ubuntu/Debian based)
+- **Shell**: Bash
 
-#### 6.2 Techniques
--   **Input Stream Injection**: Sending raw bytes to `stdin` of the target process to simulate network payloads.
--   **Address Leak Parsing**: Regex matching on process output to simulate the "reading" of leaked pointers.
--   **Server-Sent Events (SSE)**: For low-latency streaming of terminal logs to the browser.
--   **DOM Animation**: CSS3 animations to visualize buffer filling, overflows, and protection "shields".
+### Software Dependencies
+- **GCC**: GNU Compiler Collection (for compiling C programs).
+- **Make**: Build automation tool.
+- **Python 3**: For exploit generation and the dashboard server.
+- **Pip**: Python package manager.
 
-### 7. Partial Results
-#### 7.1 Initial Findings
--   **Baseline**: The secret was compromised 100% of the time. The dashboard correctly visualized the "overflow" turning memory slots red.
--   **ASLR**: Partially effective. Without leaked addresses, the attack crashed (Segfault). With leaks (simulated via debug output), the attack succeeded.
+### Python Libraries
+The dashboard requires `Flask`. It will attempt to verify/install it automatically, but you can install it manually:
+```bash
+pip3 install flask
+```
 
-#### 7.2 Iterative Improvements
--   **Visualization Refinement**: Initial animations were too "game-like" (projectiles). Refined into professional "Data Flow" and "Signal Integrity" visualizations.
--   **Privacy**: Changed the secret display to be "Hidden by Default" to better represent secure memory contents.
+### Optional Tools
+- **xdg-open**: To automatically open the dashboard in your default browser.
 
-### 8. Results and Discussion
-#### 8.1 Final Results
--   **Scenario 1 (Unprotected)**: Attack Success. Secret overwritten with malicious data.
--   **Scenario 2 (ASLR Only)**: Attack Success (with leak). Address randomization was bypassed by reading the leaked pointer.
--   **Scenario 3 (Hybrid Protection)**: **Attack Blocked**. Even with the correct address and a successful buffer overflow, the dereference of the pointer triggered the simulated hardware trap (Access Denied).
+---
 
-#### 8.2 Discussion
-The results validate the hypothesis: **Architecture > Obscurity**.
-ASLR relies on the secrecy of addresses (obscurity). Once that is lost, the defense collapses. The Hybrid MPK approach relies on **Authorization**. Even if the attacker knows *where* the data is, they lack the *key* to access it. This demonstrates a Zero-Trust architecture applied to memory.
+## 📦 Installation
 
-### 9. Prototype (Software Demonstration)
-#### 9.1 Prototype Description
-The prototype is a self-contained "Memory Defense Dashboard".
--   **Interactive Console**: Users select scenarios (Baseline, ASLR, Protected).
--   **Visualizer**: A dynamic grid representing RAM bytes, pointers, and secret zones.
--   **Real-Time Terminal**: Shows the attacker's shell output alongside the visualizer.
+1.  **Clone the Repository**
+    ```bash
+    git clone https://github.com/SujithDodmane/Memory-Compartmentalization-using-MPK-keys.git
+    cd Memory-Compartmentalization-using-MPK-keys
+    ```
 
-#### 9.2 Development Process
-Built in three sprints:
-1.  Core C Logic & Exploits.
-2.  Basic Web Interface & Connectivity.
-3.  Advanced Animations & Polish.
+2.  **Install System Dependencies (Ubuntu/Debian)**
+    If you don't have `gcc` or `python3` installed, run:
+    ```bash
+    sudo apt update
+    sudo apt install build-essential python3 python3-pip
+    ```
 
-#### 9.3 Testing and Validation
--   Validated against generic buffer overflow payloads.
--   Verified "Fail-Closed" behavior: The protected app defaults to denying access if the key is invalid.
--   Cross-verified across multiple runs to ensure ASLR randomization was actually occurring (addresses changed every run).
+3.  **Verify Environment**
+    Ensure you have `gcc` and `python3`:
+    ```bash
+    gcc --version
+    python3 --version
+    ```
 
-### 10. Conclusion
-#### 10.1 Summary
-This project successfully demonstrated the limitations of current ASLR implementations and the robustness of fine-grained compartmentalization. We built a fully functional end-to-end demonstration platform that makes complex memory security concepts accessible and visible.
+---
 
-#### 10.2 Personal Reflection
-Working on this project highlighted the fragility of low-level software. Seeing how easily a single missing bound check can compromise an entire system—and conversely, how a strong architectural guarantee (MPK) can mitigate it—was a profound learning experience. It emphasized the need for "Secure by Design" principles over patch-based security.
+## ▶️ How to Run
 
-### 11. Visuals
-*(Refer to the Dashboard for live visualizations)*
-1.  **Buffer Overflow**: Illustrated by a wave of red bytes consuming the blue "safe" buffer.
-2.  **Pointer Corruption**: The pointer value indicator glitches and changes to the target address.
-3.  **Protection Shield**: In the Protected scenario, a lock icon pulses and rejects the incoming access attempt.
-4.  **Dashboard Layout**:
-    -   *Left*: Control Panel & Status.
-    -   *Center*: Memory Visualizer (RAM Simulation).
-    -   *Right*: Attacker Terminal Output.
+You can run the project in **Terminal Mode** (for quick verification) or **Dashboard Mode** (for the full visual experience).
 
-### 12. Outcome of the Work
--   **Product**: A deployable educational tool (`Memory Defense Dashboard`).
--   **Codebase**: Open-source repository pushed to GitHub (`Memory-Compartmentalization-using-MPK-keys`) containing C source, Python exploits, and the visualization engine.
--   **Documentation**: Comprehensive walkthroughs and this technical report.
+### Option 1: Full Automated Demo (Terminal)
+This script builds the project and runs through all attack scenarios (Baseline, ASLR, Protected) sequentially.
+
+```bash
+./run_full_demo.sh
+```
+
+**What you will see:**
+1.  **Phase 2 (Baseline)**: Attack succeeds; "Secret Leaked".
+2.  **Phase 3 (ASLR)**: Attack succeeds; ASLR is bypassed via a leak.
+3.  **Phase 6 (Protected)**: Attack BLOCKED; The program crashes safely (Segfault) instead of leaking data.
+
+### Option 2: Interactive Dashboard (GUI)
+This is the recommended way to present the project. It launches a web server and visualizes memory in real-time.
+
+1.  **Start the Dashboard**
+    ```bash
+    ./start_dashboard.sh
+    ```
+    *This will start the Flask server and try to open your web browser to `http://127.0.0.1:5000`.*
+
+2.  **Use the Dashboard**
+    - Click **"Run Baseline Attack"**: Watch the red buffer overflow corrupt memory.
+    - Click **"Run ASLR Attack"**: See the memory addresses change (randomization) but still get compromised.
+    - Click **"Run Protected Attack"**: Watch the "Shield" icon activate and block the access.
+
+### Option 3: Manual Execution
+If you want to run specific steps manually:
+
+1.  **Build the executables**
+    ```bash
+    make clean
+    make all aslr_app protected_app
+    ```
+
+2.  **Run a specific attack**
+    *   **Baseline Attack**:
+        ```bash
+        make run_attack
+        ```
+    *   **ASLR Attack**:
+        ```bash
+        python3 run_exploit.py ./aslr_app
+        ```
+    *   **Protected Attack**:
+        ```bash
+        python3 run_exploit.py ./protected_app
+        ```
+
+3.  **Run Benchmarks**
+    ```bash
+    gcc -o benchmark src/benchmark.c src/mpk_lib.c -I.
+    ./benchmark
+    ```
+
+---
+
+## 📂 Project Structure
+
+```plaintext
+├── src/
+│   ├── vulnerable_app.c   # Baseline vulnerable application
+│   ├── aslr_app.c         # Application with ASLR enabled
+│   ├── protected_app.c    # Application with Hybrid MPK protection
+│   ├── mpk_lib.c          # Library for simulated MPK functions
+│   ├── exploit_gen.py     # Python script to generate malicious payloads
+│   └── output.c           # Helper for formatted terminal output
+├── gui/
+│   ├── app.py             # Flask backend for the dashboard
+│   ├── templates/         # HTML frontend
+│   └── static/            # CSS/JS assets
+├── run_full_demo.sh       # Automated demo script
+├── start_dashboard.sh     # Launcher for the GUI dashboard
+├── Makefile               # Build configuration
+└── Detailed_Project_Report.md # Full technical report
+```
+
+---
+
+## 📊 Evaluation Results
+
+| Scenario | Defense | Outcome | Note |
+| :--- | :--- | :--- | :--- |
+| **Baseline** | None | ❌ **Compromised** | Buffer overflow trivially overwrites data. |
+| **ASLR Only** | Randomization | ❌ **Compromised** | Bypassed using a simulated address leak. |
+| **Protected** | **ASLR + MPK** | ✅ **SECURE** | **Access Denied**. The hardware simulation blocked the unauthorized read. |
+
+## 🤝 Contributing
+Feel free to submit issues or pull requests if you find bugs or want to improve the visualization.
+
+## 📜 License
+This project is open-source.
